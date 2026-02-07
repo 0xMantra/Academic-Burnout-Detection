@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}View Data - Academic Burnout Detection{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="mb-4">
+            <h2 class="text-white mb-2">
+                <i class="fas fa-table"></i> Student Records
+            </h2>
+            <p class="text-white-50">All student data in the system</p>
+        </div>
+
+        <!-- Stats Cards -->
+        {% if stats %}
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Total Students</h6>
+                        <h3 class="text-primary">{{ stats.total_students }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Avg Burnout Score</h6>
+                        <h3 class="text-info">{{ stats.avg_burnout_score }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">At Risk</h6>
+                        <h3 class="text-warning">{{ stats.burnout_count }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Risk Prevalence</h6>
+                        <h3 class="text-danger">{{ stats.burnout_percentage }}%</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Data Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-database"></i> Student Burnout Records
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if records %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Stress</th>
+                                <th>Sleep (h)</th>
+                                <th>Study (h)</th>
+                                <th>Screen (h)</th>
+                                <th>Activity</th>
+                                <th>Social</th>
+                                <th>Burnout Score</th>
+                                <th>Risk Level</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in records %}
+                            <tr>
+                                <td><strong>#{{ record.student_id }}</strong></td>
+                                <td><span class="badge bg-danger">{{ record.stress_level }}</span></td>
+                                <td>{{ record.sleep_duration }}</td>
+                                <td>{{ record.study_hours }}</td>
+                                <td>{{ record.screen_time }}</td>
+                                <td>
+                                    <div class="progress" style="height: 20px; width: 80px;">
+                                        <div class="progress-bar bg-success" style="width: {{ record.physical_activity * 10 }}%"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 20px; width: 80px;">
+                                        <div class="progress-bar bg-info" style="width: {{ record.social_interaction * 10 }}%"></div>
+                                    </div>
+                                </td>
+                                <td><strong>{{ record.burnout_score }}</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ record.risk_color }}">
+                                        {{ record.risk_emoji }} {{ record.risk_level }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if record.burnout_binary == 1 %}
+                                    <span class="badge bg-danger">High Risk</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Low Risk</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted text-center mt-3">Showing {{ records|length }} record(s)</p>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No student records found. <a href="/">Add a new assessment</a> to get started.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Risk Distribution Chart -->
+        {% if stats and stats.risk_distribution %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Risk Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="mb-3">Risk Categories:</h6>
+                        <div class="stat-box mb-2">
+                            <span class="badge bg-success me-2">🟢</span> Low Risk: {{ stats.risk_distribution.low }}
+                        </div>
+                        <div class="stat-box mb-2">
+                            <span class="badge bg-warning me-2">🟡</span> Moderate Risk: {{ stats.risk_distribution.moderate }}
+                        </div>
+                        <div class="stat-box mb-2">
+                            <span class="badge bg-danger me-2">🔴</span> High Risk: {{ stats.risk_distribution.high }}
+                        </div>
+                        <div class="stat-box mb-2">
+                            <span class="badge bg-dark me-2">⛔</span> Critical Risk: {{ stats.risk_distribution.critical }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script>
+    {% if stats and stats.risk_distribution %}
+    const ctx = document.getElementById('riskChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Low Risk', 'Moderate Risk', 'High Risk', 'Critical Risk'],
+            datasets: [{
+                data: [{{ stats.risk_distribution.low }}, {{ stats.risk_distribution.moderate }}, {{ stats.risk_distribution.high }}, {{ stats.risk_distribution.critical }}],
+                backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#721c24'],
+                borderColor: ['#fff'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

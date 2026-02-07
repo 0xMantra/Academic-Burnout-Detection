@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Academic Burnout Detection{% endblock %}
+
+{% block navbar %}
+<nav>
+  <h2>🧠 Academic Burnout Detection</h2>
+  <div>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/">Assessment</a>
+    <a href="/progress">Progress</a>
+    <button class="nav-btn">Home</button>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="aurora"><span></span><span></span></div>
+
+<section class="hero">
+  <div class="fade">
+    <h1>Understand Your<br><span>Mental Load</span></h1>
+    <p>Academic burnout detection helps identify early signs of stress in students to provide timely support.</p>
+    <div class="actions">
+      <a href="#formSection" class="primary">Start Assessment</a>
+      <a href="/dashboard" class="ghost">Explore Insights</a>
+    </div>
+  </div>
+
+  <div class="phone" id="phoneMockup">
+    <h4>Student Health Snapshot</h4>
+    <div class="metric">Stress<div class="bar"><div class="fill" style="width:65%"></div></div></div>
+    <div class="metric">Sleep<div class="bar"><div class="fill" style="width:75%"></div></div></div>
+    <div class="metric">Study Load<div class="bar"><div class="fill" style="width:82%"></div></div></div>
+    <h4 style="margin-top:22px">Burnout Score</h4>
+    <h2 style="background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent">0.45</h2>
+    <p>Moderate Risk ⚠️</p>
+  </div>
+</section>
+
+<section class="premium-features">
+  <div class="aurora-bg"><span></span><span></span><span></span></div>
+  
+  <h2 style="position:relative;z-index:1;text-align:center;font-size:3.2rem;font-weight:700;letter-spacing:-1px;margin-bottom:60px;color:#fff">ACADEMIC <span style="background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent">BURNOUT</span></h2>
+  
+  <div class="features-container">
+    <card class="feature-card">
+      <h3 class="card-title">Stress Patterns</h3>
+      <p class="card-subtitle">See pressure forming.</p>
+    </card>
+
+    <card class="feature-card">
+      <h3 class="card-title">Burnout Index</h3>
+      <p class="card-subtitle">Clarity in one score.</p>
+    </card>
+
+    <card class="feature-card">
+      <h3 class="card-title">Early Signals</h3>
+      <p class="card-subtitle">Act sooner.</p>
+    </card>
+  </div>
+</section>
+
+<!-- Assessment Form Section -->
+<div id="formSection" style="scroll-margin-top: 120px; padding: 80px 140px;">
+  <div style="max-width:900px;margin:0 auto;color:#fff">
+    <h2 style="margin-bottom:12px;">Student Assessment</h2>
+    <p style="opacity:.8;margin-bottom:24px;">Enter your details to calculate burnout risk.</p>
+
+    <form id="burnoutForm">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div>
+          <label>Stress Level <span id="stressValue">5.0</span></label>
+          <input id="stressLevel" type="range" min="1" max="10" step="0.1" value="5" style="width:100%">
+        </div>
+        <div>
+          <label>Sleep Duration (hours) <span id="sleepValue">7.5</span></label>
+          <input id="sleepDuration" type="range" min="3" max="12" step="0.1" value="7.5" style="width:100%">
+        </div>
+        <div>
+          <label>Study Hours (per day) <span id="studyValue">5.0</span></label>
+          <input id="studyHours" type="range" min="0.5" max="14" step="0.1" value="5" style="width:100%">
+        </div>
+        <div>
+          <label>Screen Time (hours) <span id="screenValue">6.0</span></label>
+          <input id="screenTime" type="range" min="1" max="16" step="0.1" value="6" style="width:100%">
+        </div>
+        <div>
+          <label>Physical Activity <span id="activityValue">5.0</span></label>
+          <input id="physicalActivity" type="range" min="0" max="10" step="0.1" value="5" style="width:100%">
+        </div>
+        <div>
+          <label>Social Interaction <span id="socialValue">5.0</span></label>
+          <input id="socialInteraction" type="range" min="0" max="10" step="0.1" value="5" style="width:100%">
+        </div>
+      </div>
+
+      <div style="margin-top:18px;display:flex;gap:16px">
+        <button type="submit" class="primary">Calculate Burnout Risk</button>
+        <button type="button" class="ghost" onclick="resetForm()">Reset</button>
+      </div>
+    </form>
+
+    <div id="resultsSection" style="display:none;margin-top:28px;">
+      <div style="background:rgba(255,255,255,0.04);padding:18px;border-radius:12px">
+        <div style="font-size:1.5rem;font-weight:600;color:var(--accent)">Burnout Score: <span id="burnoutScoreDisplay">-</span></div>
+        <div id="riskLevelDisplay" style="margin-top:8px; font-weight:600"></div>
+        <p id="riskDescription" style="opacity:.9"></p>
+        <div id="componentsContainer" style="margin-top:12px"></div>
+        <div style="margin-top:12px;display:flex;gap:12px">
+          <button class="primary" onclick="saveRecord()">Save Record</button>
+          <button class="ghost" onclick="resetForm()">New Assessment</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>©️ Academic Burnout Detection • Creative AI Interface</footer>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const observer=new IntersectionObserver(e=>{
+  e.forEach(x=>x.isIntersecting&&x.target.classList.add('show'))
+},{threshold:.2})
+
+document.querySelectorAll('.fade').forEach(el=>observer.observe(el))
+
+// reveal phone after small timeout for nicer effect
+setTimeout(()=>{const p=document.getElementById('phoneMockup'); if(p) p.classList.add('show')},220)
+
+// --- Form controls & submission ---
+const inputs=[
+  ['stressLevel','stressValue'],['sleepDuration','sleepValue'],['studyHours','studyValue'],['screenTime','screenValue'],['physicalActivity','activityValue'],['socialInteraction','socialValue']
+]
+function updateDisplays(){
+  inputs.forEach(([id,disp])=>{
+    const el=document.getElementById(id), d=document.getElementById(disp)
+    if(el && d) d.innerText = parseFloat(el.value).toFixed(1)
+  })
+}
+inputs.forEach(([id])=>{const el=document.getElementById(id); if(el) el.addEventListener('input',updateDisplays)})
+updateDisplays()
+
+let lastPayload=null, lastResponse=null
+document.getElementById('burnoutForm').addEventListener('submit', async (ev)=>{
+  ev.preventDefault()
+  const payload={
+    stress_level: parseFloat(document.getElementById('stressLevel').value),
+    sleep_duration: parseFloat(document.getElementById('sleepDuration').value),
+    study_hours: parseFloat(document.getElementById('studyHours').value),
+    screen_time: parseFloat(document.getElementById('screenTime').value),
+    physical_activity: parseFloat(document.getElementById('physicalActivity').value),
+    social_interaction: parseFloat(document.getElementById('socialInteraction').value)
+  }
+  lastPayload = payload
+  try{
+    const res = await fetch('/submit-data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    const data = await res.json()
+    lastResponse = data
+    const score = data.burnout_score ?? data.score ?? data.burnout
+    document.getElementById('burnoutScoreDisplay').innerText = (score!==undefined)? Number(score).toFixed(2) : '-'
+    const risk = data.risk ?? data.risk_level ?? (score>0.7? 'High': score>0.4? 'Moderate':'Low')
+    document.getElementById('riskLevelDisplay').innerText = risk
+    document.getElementById('riskDescription').innerText = data.description || data.message || ''
+    const compCtn = document.getElementById('componentsContainer')
+    compCtn.innerHTML = ''
+    if(data.components){
+      for(const k in data.components){
+        const v = data.components[k]
+        const wrap = document.createElement('div')
+        wrap.style.marginTop='6px'
+        wrap.innerHTML = `<strong>${k}</strong>: <span style="float:right">${Number(v).toFixed(2)}</span><div style="background:rgba(255,255,255,0.04);height:8px;border-radius:6px;margin-top:6px"><div style="width:${Math.min(100,Math.max(0,v*100))}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:6px"></div></div>`
+        compCtn.appendChild(wrap)
+      }
+    }
+    document.getElementById('resultsSection').style.display='block'
+    window.location.hash = '#formSection'
+  }catch(err){
+    alert('Error calculating burnout — check server logs')
+    console.error(err)
+  }
+})
+
+async function saveRecord(){
+  if(!lastPayload) return alert('No assessment to save')
+  const payload = Object.assign({}, lastPayload)
+  if(lastResponse && (lastResponse.burnout_score || lastResponse.score)) {
+    const score = lastResponse.burnout_score ?? lastResponse.score
+    payload.burnout_score = score
+    payload.burnout_binary = score > 0.5 ? 1 : 0
+  }
+  try{
+    const res = await fetch('/save-record',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    const result = await res.json()
+    if(res.ok){ alert('Record saved successfully with ID: ' + result.student_id) }
+    else { alert('Failed to save: ' + result.error) }
+  }catch(e){ alert('Save error'); console.error(e) }
+}
+
+function resetForm(){
+  document.getElementById('burnoutForm').reset()
+  // restore defaults
+  document.getElementById('stressLevel').value = 5
+  document.getElementById('sleepDuration').value = 7.5
+  document.getElementById('studyHours').value = 5
+  document.getElementById('screenTime').value = 6
+  document.getElementById('physicalActivity').value = 5
+  document.getElementById('socialInteraction').value = 5
+  updateDisplays()
+  document.getElementById('resultsSection').style.display='none'
+  lastPayload = null; lastResponse = null
+}
+
+</script>
+{% endblock %}

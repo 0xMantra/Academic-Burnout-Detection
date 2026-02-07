@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Academic Burnout Detection{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="mb-4">
+            <h2 class="text-white mb-2">
+                <i class="fas fa-chart-bar"></i> Statistics Dashboard
+            </h2>
+            <p class="text-white-50">Comprehensive burnout analysis overview</p>
+        </div>
+
+        {% if stats %}
+        <!-- KPI Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-users"></i> Total Students
+                        </h6>
+                        <h2 class="text-primary">{{ stats.total_students }}</h2>
+                        <small class="text-muted">In database</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-chart-line"></i> Avg Burnout Score
+                        </h6>
+                        <h2 class="text-info">{{ stats.avg_burnout_score }}</h2>
+                        <small class="text-muted">Scale: 0-1</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-exclamation-triangle"></i> At Risk (Score > 0.5)
+                        </h6>
+                        <h2 class="text-warning">{{ stats.burnout_count }}</h2>
+                        <small class="text-muted">{{ stats.burnout_percentage }}% of total</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-check-circle"></i> Low Risk
+                        </h6>
+                        <h2 class="text-success">
+                            {{ stats.total_students - stats.burnout_count }}
+                        </h2>
+                        <small class="text-muted">Healthy status</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="row mb-4">
+            <!-- Risk Distribution -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-pie-chart"></i> Risk Distribution
+                        </h5>
+                    </div>
+                    <div class="card-body" style="height: 350px;">
+                        <canvas id="riskDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Categories Breakdown -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list"></i> Risk Categories
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="fas fa-circle text-success"></i> Low Risk (&lt; 0.25)</span>
+                                <strong>{{ stats.risk_distribution.low }}</strong>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-success" 
+                                     style="width: {% if stats.total_students > 0 %}{{ (stats.risk_distribution.low / stats.total_students) * 100 }}{% endif %}%;">
+                                    {{ (stats.risk_distribution.low / stats.total_students * 100)|round(1) }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="fas fa-circle text-warning"></i> Moderate (0.25-0.45)</span>
+                                <strong>{{ stats.risk_distribution.moderate }}</strong>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-warning" 
+                                     style="width: {% if stats.total_students > 0 %}{{ (stats.risk_distribution.moderate / stats.total_students) * 100 }}{% endif %}%;">
+                                    {{ (stats.risk_distribution.moderate / stats.total_students * 100)|round(1) }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="fas fa-circle text-danger"></i> High (0.45-0.65)</span>
+                                <strong>{{ stats.risk_distribution.high }}</strong>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-danger" 
+                                     style="width: {% if stats.total_students > 0 %}{{ (stats.risk_distribution.high / stats.total_students) * 100 }}{% endif %}%;">
+                                    {{ (stats.risk_distribution.high / stats.total_students * 100)|round(1) }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="fas fa-circle text-dark"></i> Critical (&gt; 0.65)</span>
+                                <strong>{{ stats.risk_distribution.critical }}</strong>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-dark" 
+                                     style="width: {% if stats.total_students > 0 %}{{ (stats.risk_distribution.critical / stats.total_students) * 100 }}{% endif %}%;">
+                                    {{ (stats.risk_distribution.critical / stats.total_students * 100)|round(1) }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="row mb-4">
+            <!-- Lifestyle Metrics -->
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar"></i> Average Lifestyle Metrics
+                        </h5>
+                    </div>
+                    <div class="card-body" style="height: 350px;">
+                        <canvas id="metricsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-table"></i> Detailed Metrics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <h6>Avg Stress Level</h6>
+                            <div class="value">{{ stats.avg_stress }}/10</div>
+                            <small class="text-muted">Out of 10</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <h6>Avg Sleep Duration</h6>
+                            <div class="value">{{ stats.avg_sleep }}h</div>
+                            <small class="text-muted">Recommended: 7-9h</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <h6>Avg Study Hours</h6>
+                            <div class="value">{{ stats.avg_study }}h</div>
+                            <small class="text-muted">Per day</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <h6>Avg Screen Time</h6>
+                            <div class="value">{{ stats.avg_screen }}h</div>
+                            <small class="text-muted">Per day</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No data available yet. 
+            <a href="/">Add student assessments</a> to generate statistics.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    {% if stats %}
+    // Risk Distribution Pie Chart
+    const riskCtx = document.getElementById('riskDistributionChart').getContext('2d');
+    new Chart(riskCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Low Risk', 'Moderate Risk', 'High Risk', 'Critical Risk'],
+            datasets: [{
+                data: [
+                    {{ stats.risk_distribution.low }},
+                    {{ stats.risk_distribution.moderate }},
+                    {{ stats.risk_distribution.high }},
+                    {{ stats.risk_distribution.critical }}
+                ],
+                backgroundColor: [
+                    '#28a745',
+                    '#ffc107',
+                    '#dc3545',
+                    '#721c24'
+                ],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Average Metrics Bar Chart
+    const metricsCtx = document.getElementById('metricsChart').getContext('2d');
+    new Chart(metricsCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Stress Level', 'Sleep (hours)', 'Study Hours', 'Screen Time (hours)'],
+            datasets: [{
+                label: 'Average Value',
+                data: [
+                    {{ stats.avg_stress }},
+                    {{ stats.avg_sleep }},
+                    {{ stats.avg_study }},
+                    {{ stats.avg_screen }}
+                ],
+                backgroundColor: [
+                    '#e74c3c',
+                    '#3498db',
+                    '#2ecc71',
+                    '#9b59b6'
+                ],
+                borderColor: [
+                    '#c0392b',
+                    '#2980b9',
+                    '#27ae60',
+                    '#8e44ad'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

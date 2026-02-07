@@ -1,0 +1,578 @@
+{% extends "base.html" %}
+
+{% block title %}My Progress - Your Burnout Journey{% endblock %}
+
+{% block content %}
+<style>
+    .progress-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 20px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .progress-hero h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    .progress-hero p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .status-card {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        border-left: 5px solid;
+    }
+
+    .status-card.success {
+        border-left-color: #28a745;
+    }
+
+    .status-card.info {
+        border-left-color: #17a2b8;
+    }
+
+    .status-card.warning {
+        border-left-color: #ffc107;
+    }
+
+    .status-card.danger {
+        border-left-color: #dc3545;
+    }
+
+    .status-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+        margin: 15px 0;
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .metric-box {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .metric-label {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 10px;
+    }
+
+    .metric-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .chart-container {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+
+    .chart-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+    }
+
+    .charts-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+
+    .insights-panel {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+
+    .insights-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .insight-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        border-left: 4px solid #667eea;
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .insight-icon {
+        font-size: 1.5rem;
+        min-width: 30px;
+    }
+
+    .insight-text {
+        color: #333;
+        line-height: 1.5;
+    }
+
+    .progress-bar-custom {
+        background: #e9ecef;
+        height: 30px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: width 0.3s ease;
+    }
+
+    .trend-up {
+        color: #dc3545;
+    }
+
+    .trend-down {
+        color: #28a745;
+    }
+
+</style>
+
+<div class="container container-main">
+    <!-- Hero Section -->
+    <div class="progress-hero">
+        <h1>📊 Your Burnout Journey</h1>
+        <p>Track your well-being progress over time • Discover patterns • Get personalized insights</p>
+    </div>
+
+    <!-- Status Card -->
+    <div class="status-card {{ progress_data.status_color }}">
+        <div style="font-size: 1.1rem; font-weight: 600; color: #2c3e50; margin-bottom: 10px;">
+            <i class="fas fa-chart-line"></i> Current Status
+        </div>
+        <div style="font-size: 2.5rem; font-weight: bold; margin: 15px 0;">
+            {{ progress_data.status }}
+        </div>
+        
+        <div class="metrics-grid">
+            <div class="metric-box">
+                <div class="metric-label">Burnout Risk Now</div>
+                <div class="metric-value">{{ progress_data.current_burnout }}</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Was (Start of Period)</div>
+                <div class="metric-value">{{ progress_data.prev_burnout }}</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Change</div>
+                <div class="metric-value" style="{% if progress_data.burnout_change > 0 %}color: #28a745;{% else %}color: #dc3545;{% endif %}">
+                    {% if progress_data.burnout_change > 0 %}
+                        ↓ {{ progress_data.burnout_change }}
+                    {% else %}
+                        ↑ {{ -progress_data.burnout_change }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">% Improvement</div>
+                <div class="metric-value" style="{% if progress_data.burnout_change_pct > 0 %}color: #28a745;{% else %}color: #dc3545;{% endif %}">
+                    {% if progress_data.burnout_change_pct > 0 %}{{ progress_data.burnout_change_pct }}{% else %}{{ -progress_data.burnout_change_pct }}{% endif %}%
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-row">
+        <!-- Stress Trend Chart -->
+        <div class="chart-container">
+            <div class="chart-title">😰 Stress Trend Over Time</div>
+            <canvas id="stressChart" height="300"></canvas>
+            <div style="margin-top: 15px; font-size: 0.95rem; color: #666;">
+                <strong>Status:</strong> 
+                <span class="{% if progress_data.stress_trend == 'improving' %}trend-down{% else %}trend-up{% endif %}">
+                    {% if progress_data.stress_trend == 'improving' %}
+                        📉 Improving — Keep up the good work!
+                    {% else %}
+                        📈 Rising — Consider stress management techniques
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Sleep vs Burnout Chart -->
+        <div class="chart-container">
+            <div class="chart-title">🛏️ Sleep vs Burnout Correlation</div>
+            <canvas id="sleepBurnoutChart" height="300"></canvas>
+            <div style="margin-top: 15px; font-size: 0.95rem; color: #666;">
+                <strong>Correlation:</strong> {{ progress_data.correlations.sleep_stress }}<br>
+                <strong>Insight:</strong> 
+                {% if progress_data.correlations.sleep_stress < -0.5 %}
+                    Strong negative correlation — better sleep = lower stress ✨
+                {% elif progress_data.correlations.sleep_stress > 0.5 %}
+                    Positive correlation — prioritize sleep for stress relief
+                {% else %}
+                    Moderate relationship — sleep remains important
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen Time Chart -->
+    <div class="chart-container">
+        <div class="chart-title">📱 Digital Usage Over Time</div>
+        <canvas id="screenChart" height="250"></canvas>
+        <div style="margin-top: 15px; font-size: 0.95rem; color: #666;">
+            <strong>Trend:</strong> 
+            {% if progress_data.screen_values[-1] < progress_data.screen_values[0] %}
+                📉 Improving digital wellness — reducing screen time
+            {% else %}
+                📈 Screen time increasing — consider setting daily limits
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Smart Insights Panel -->
+    <div class="insights-panel">
+        <div class="insights-title">
+            <i class="fas fa-lightbulb" style="color: #f39c12;"></i> Smart Insights & Recommendations
+        </div>
+
+        {% if progress_data.insights %}
+            {% for insight in progress_data.insights %}
+                <div class="insight-item">
+                    <div class="insight-icon">💡</div>
+                    <div class="insight-text">{{ insight }}</div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="insight-item">
+                <div class="insight-icon">📊</div>
+                <div class="insight-text">Keep tracking your data to unlock personalized insights</div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Additional Metrics Section -->
+    <div class="card">
+        <div class="card-header bg-info">
+            <h5 class="mb-0">
+                <i class="fas fa-battery-three-quarters"></i> Well-being Metrics Overview
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div>
+                        <h6 class="mb-3">Average Sleep Duration</h6>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill" style="width: {% if progress_data.sleep_values[-1] %}{{ (progress_data.sleep_values[-1] / 12) * 100 }}{% else %}50{% endif %}%">
+                                {{ progress_data.sleep_values[-1] if progress_data.sleep_values else 'N/A' }} hrs
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            Recommended: 7-9 hours
+                            {% if progress_data.sleep_values and progress_data.sleep_values[-1] >= 7 %}
+                                ✅ On track!
+                            {% else %}
+                                ⚠️ Below recommendations
+                            {% endif %}
+                        </small>
+                    </div>
+
+                    <div style="margin-top: 25px;">
+                        <h6 class="mb-3">Average Study Hours</h6>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill" style="width: {% if progress_data.study_values[-1] %}{{ (progress_data.study_values[-1] / 14) * 100 }}{% else %}50{% endif %}%">
+                                {{ progress_data.study_values[-1] if progress_data.study_values else 'N/A' }} hrs
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            Healthy range: 3-8 hours
+                            {% if progress_data.study_values and 3 <= progress_data.study_values[-1] <= 8 %}
+                                ✅ Balanced!
+                            {% elif progress_data.study_values and progress_data.study_values[-1] > 8 %}
+                                ⚠️ Consider taking breaks
+                            {% else %}
+                                📚 Increase study time
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div>
+                        <h6 class="mb-3">Stress Level</h6>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill" style="width: {% if progress_data.stress_values[-1] %}{{ (progress_data.stress_values[-1] / 10) * 100 }}{% else %}50{% endif %}%; 
+                                {% if progress_data.stress_values and progress_data.stress_values[-1] > 7 %}background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);{% endif %}">
+                                {{ progress_data.stress_values[-1] if progress_data.stress_values else 'N/A' }} / 10
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            {% if progress_data.stress_values and progress_data.stress_values[-1] < 4 %}
+                                ✅ Low stress
+                            {% elif progress_data.stress_values and progress_data.stress_values[-1] < 7 %}
+                                🟡 Moderate — manageable
+                            {% else %}
+                                ⚠️ High stress — seek support
+                            {% endif %}
+                        </small>
+                    </div>
+
+                    <div style="margin-top: 25px;">
+                        <h6 class="mb-3">Screen Time</h6>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill" style="width: {% if progress_data.screen_values[-1] %}{{ (progress_data.screen_values[-1] / 16) * 100 }}{% else %}50{% endif %}%">
+                                {{ progress_data.screen_values[-1] if progress_data.screen_values else 'N/A' }} hrs
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            Healthy limit: 4-6 hours (non-academic)
+                            {% if progress_data.screen_values and progress_data.screen_values[-1] <= 6 %}
+                                ✅ Good digital wellness
+                            {% else %}
+                                ⚠️ Consider reducing screen time
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4 mb-5">
+        <div class="col-md-12">
+            <div class="d-flex gap-3">
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> New Assessment
+                </a>
+                <a href="/data" class="btn btn-info">
+                    <i class="fas fa-database"></i> View All Records
+                </a>
+                <a href="/dashboard" class="btn btn-secondary">
+                    <i class="fas fa-chart-bar"></i> Overall Statistics
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script>
+    // Stress Trend Chart
+    const ctxStress = document.getElementById('stressChart').getContext('2d');
+    new Chart(ctxStress, {
+        type: 'line',
+        data: {
+            labels: {{ progress_data.weeks | tojson }},
+            datasets: [{
+                label: 'Stress Level (1-10)',
+                data: {{ progress_data.stress_values | tojson }},
+                borderColor: '#e74c3c',
+                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 6,
+                pointBackgroundColor: '#e74c3c',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        usePointStyle: true,
+                        font: { size: 12 }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 10,
+                    ticks: { stepSize: 2 },
+                    title: {
+                        display: true,
+                        text: 'Stress Level'
+                    }
+                }
+            }
+        }
+    });
+
+    // Sleep vs Burnout Chart
+    const ctxSleep = document.getElementById('sleepBurnoutChart').getContext('2d');
+    new Chart(ctxSleep, {
+        type: 'line',
+        data: {
+            labels: {{ progress_data.weeks | tojson }},
+            datasets: [
+                {
+                    label: 'Sleep Duration (hours)',
+                    data: {{ progress_data.sleep_values | tojson }},
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#3498db',
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Burnout Score (0-1)',
+                    data: {{ progress_data.burnout_values | tojson }},
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#e74c3c',
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        usePointStyle: true,
+                        font: { size: 12 }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Sleep Hours'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Burnout Score'
+                    },
+                    max: 1,
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Screen Time Bar Chart
+    const ctxScreen = document.getElementById('screenChart').getContext('2d');
+    new Chart(ctxScreen, {
+        type: 'bar',
+        data: {
+            labels: {{ progress_data.weeks | tojson }},
+            datasets: [{
+                label: 'Screen Time (hours)',
+                data: {{ progress_data.screen_values | tojson }},
+                backgroundColor: [
+                    'rgba(155, 89, 182, 0.7)',
+                    'rgba(155, 89, 182, 0.75)',
+                    'rgba(155, 89, 182, 0.8)',
+                    'rgba(155, 89, 182, 0.85)'
+                ],
+                borderColor: '#9b59b6',
+                borderWidth: 2,
+                borderRadius: 8,
+                hoverBackgroundColor: '#9b59b6'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        usePointStyle: true,
+                        font: { size: 12 }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 16,
+                    ticks: { stepSize: 2 },
+                    title: {
+                        display: true,
+                        text: 'Hours'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+    .gap-3 {
+        gap: 15px !important;
+    }
+</style>
+{% endblock %}
